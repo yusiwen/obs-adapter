@@ -1,0 +1,7 @@
+bin/
+dist/
+*.env
+.env
+!*.env.example
+*.log
+test/e2e/out/
