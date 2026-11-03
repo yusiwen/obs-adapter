@@ -29,8 +29,9 @@ import (
 	"github.com/yusiwen/obs-adapter/internal/s3sig"
 )
 
-// Version is reported by /__health and the Server header.
-const Version = "0.1.0"
+// Version is reported by /__health and the Server header. It is a variable so
+// release builds can inject it with -ldflags "-X ...gateway.Version=...".
+var Version = "0.1.0"
 
 const obsNamespace = "http://obs.myhuaweicloud.com/doc/2015-06-30/"
 

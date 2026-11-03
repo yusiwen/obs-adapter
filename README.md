@@ -82,6 +82,33 @@ curl -s http://127.0.0.1:8080/__health
 curl -sI http://my-bucket.obs.local:8080/?apiversion | grep x-obs-api   # expect 3.0
 ```
 
+## Container image
+
+```bash
+docker build -t obs-adapter:dev .
+# cross-build for another architecture (buildx)
+docker buildx build --platform linux/amd64,linux/arm64 -t obs-adapter:dev .
+
+docker run -d --name obs-adapter -p 8080:8080 --env-file ~/.config/obs-adapter/minio.env \
+  -e OBS_ADAPTER_DOMAIN=obs.internal obs-adapter:dev
+```
+
+The image is a two-stage build: `golang:1.27-alpine` → `alpine:3.22` with only
+CA certificates and the static binary (`CGO_ENABLED=0`), running as UID 65532.
+`VERSION` can be injected at build time (`--build-arg VERSION=1.2.3`) and is
+reported by `/__health`.
+
+Notes for deployment:
+
+- the container listens on **8080** as a non-root user, so publish
+  `-p 443:8443` and set `OBS_ADAPTER_LISTEN=:8443` when fronting OBS clients that
+  expect 443, or add `--cap-add NET_BIND_SERVICE` to bind 443 inside;
+- mount certificates read-only and point `OBS_ADAPTER_TLS_CERT`/`_TLS_KEY` at
+  them if TLS terminates in the container;
+- keep credentials in an `--env-file` (mode 600), never in the image;
+- `HEALTHCHECK` probes `http://127.0.0.1:8080/__health`; override it if you
+  change the listen port.
+
 ## Configuration
 
 | flag | env | default | meaning |

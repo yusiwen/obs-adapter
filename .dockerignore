@@ -1,0 +1,11 @@
+.git
+.gitignore
+.github
+bin/
+dist/
+test/e2e/out/
+docs/
+*.md
+*.log
+.env
+*.env
