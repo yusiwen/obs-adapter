@@ -89,14 +89,16 @@ jobs:
           VERSION: ${{ github.ref_name }}
         run: |
           image="${{ env.IMAGE }}"
+          version="${VERSION#v}"
+          minor="${version%.*}"
           notes=$(cat <<EOF
           Container image (linux/amd64, linux/arm64):
 
           \`\`\`
-          docker pull ${image}:${VERSION#v}
+          docker pull ${image}:${version}
           \`\`\`
 
-          Available tags: \`${VERSION#v}\`, \`${VERSION#v%.*}\`, \`latest\`.
+          Available tags: \`${version}\`, \`${minor}\`, \`latest\`.
           EOF
           )
           gh release create "$VERSION" \
