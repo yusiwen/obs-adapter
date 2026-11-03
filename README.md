@@ -185,6 +185,14 @@ round trip by digest, Range requests, unicode and space keys, exact `prefix`
 matching, `max-keys` truncation, `404 NoSuchKey`, rejected access keys and
 bucket auto provisioning — in both addressing modes.
 
+The clients resolve every bucket host to `127.0.0.1` by default; set
+`E2E_RESOLVE_IP` to aim them at an adapter running elsewhere (a container on
+another host, for instance):
+
+```bash
+E2E_RESOLVE_IP=192.0.2.48 java -cp "$OBS_SDK_JAR:test/e2e/out" ObsE2E http://obs.test:18081 legacy-bucket vhost
+```
+
 ## Known limitations
 
 - OBS proprietary file APIs (`?append`, `?rename`, `?truncate`, `?fileinterface`)

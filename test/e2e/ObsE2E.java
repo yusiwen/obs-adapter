@@ -18,7 +18,8 @@ public class ObsE2E {
     static class LocalDns implements shade.okhttp3.Dns {
         @Override
         public List<InetAddress> lookup(String hostname) throws UnknownHostException {
-            return Collections.singletonList(InetAddress.getByName("127.0.0.1"));
+            return Collections.singletonList(InetAddress.getByName(
+                    System.getenv().getOrDefault("E2E_RESOLVE_IP", "127.0.0.1")));
         }
     }
 
@@ -37,7 +38,9 @@ public class ObsE2E {
         ObsConfiguration cfg = new ObsConfiguration();
         if (mode.equals("path")) {
             // Path style also switches the SDK to the S3 V2 signature (AWS prefix).
-            cfg.setEndPoint("http://127.0.0.1:18081");
+            String ip = System.getenv().getOrDefault("E2E_RESOLVE_IP", "127.0.0.1");
+            String port = endpoint.substring(endpoint.lastIndexOf(':') + 1);
+            cfg.setEndPoint("http://" + ip + ":" + port);
             cfg.setPathStyle(true);
         } else {
             cfg.setEndPoint(endpoint);

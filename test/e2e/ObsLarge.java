@@ -19,7 +19,8 @@ public class ObsLarge {
     static class LocalDns implements shade.okhttp3.Dns {
         @Override
         public List<InetAddress> lookup(String hostname) throws UnknownHostException {
-            return Collections.singletonList(InetAddress.getByName("127.0.0.1"));
+            return Collections.singletonList(InetAddress.getByName(
+                    System.getenv().getOrDefault("E2E_RESOLVE_IP", "127.0.0.1")));
         }
     }
 
