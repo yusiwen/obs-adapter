@@ -1,5 +1,8 @@
 # obs-adapter
 
+[![ci](https://github.com/yusiwen/obs-adapter/actions/workflows/ci.yml/badge.svg)](https://github.com/yusiwen/obs-adapter/actions/workflows/ci.yml)
+[![release](https://img.shields.io/github/v/release/yusiwen/obs-adapter?style=flat-square)](https://github.com/yusiwen/obs-adapter/releases)
+[![ghcr](https://img.shields.io/badge/ghcr.io-obs--adapter-2496ed?style=flat-square&logo=docker&logoColor=white)](https://github.com/yusiwen/obs-adapter/pkgs/container/obs-adapter)
 [![Go version](https://img.shields.io/github/go-mod/go-version/yusiwen/obs-adapter?style=flat-square&logo=go&logoColor=white)](go.mod)
 [![Backend: MinIO](https://img.shields.io/badge/backend-MinIO-c72c48?style=flat-square&logo=minio&logoColor=white)](https://min.io)
 [![Protocol: OBS](https://img.shields.io/badge/protocol-OBS%20API-0b6cbf?style=flat-square)](docs/protocol.md)
@@ -84,6 +87,24 @@ curl -sI http://my-bucket.obs.local:8080/?apiversion | grep x-obs-api   # expect
 
 ## Container image
 
+### Pull the published image
+
+```bash
+docker pull ghcr.io/yusiwen/obs-adapter:1.0.0     # linux/amd64 + linux/arm64
+
+docker run -d --name obs-adapter -p 8080:8080 \
+  --env-file ~/.config/obs-adapter/minio.env \
+  -e OBS_ADAPTER_DOMAIN=obs.internal \
+  ghcr.io/yusiwen/obs-adapter:1.0.0
+```
+
+Tags: `1.0.0`, `1.0`, `latest` for a release tag, `sha-<commit>` for a manual
+run. Publishing is `.github/workflows/release.yml`: `v*` tag → build/vet/test,
+multi-arch buildx push to GHCR, then a GitHub release. `.github/workflows/ci.yml`
+runs the same checks on `main` and on pull requests.
+
+### Build it yourself
+
 ```bash
 docker build -t obs-adapter:dev .
 # cross-build for another architecture (buildx)
@@ -108,6 +129,12 @@ configs/build-minio-image.sh          # once; see the note below
 docker compose up -d --build
 curl -s http://127.0.0.1:8080/__health
 docker compose down -v                # stop and drop the data volume
+```
+
+To use the published adapter image instead of building it:
+
+```bash
+ADAPTER_IMAGE=ghcr.io/yusiwen/obs-adapter:1.0.0 docker compose up -d --no-build
 ```
 
 Override any default with the environment or a `.env` next to the compose file:

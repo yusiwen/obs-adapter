@@ -1,7 +1,9 @@
 # syntax=docker/dockerfile:1
 
 # ---- build ------------------------------------------------------------------
-FROM golang:1.27-alpine AS build
+# --platform=$BUILDPLATFORM keeps the Go toolchain native while cross-compiling
+# for TARGETOS/TARGETARCH, so a multi-arch build needs no QEMU for the compiler.
+FROM --platform=$BUILDPLATFORM golang:1.27-alpine AS build
 
 WORKDIR /src
 

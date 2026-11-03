@@ -41,7 +41,7 @@ services:
       context: .
       args:
         VERSION: ${ADAPTER_VERSION:-dev}
-    image: obs-adapter:${ADAPTER_VERSION:-dev}
+    image: ${ADAPTER_IMAGE:-obs-adapter:${ADAPTER_VERSION:-dev}}
     depends_on:
       minio:
         condition: service_healthy
