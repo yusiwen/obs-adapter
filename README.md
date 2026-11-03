@@ -1,5 +1,12 @@
 # obs-adapter
 
+[![Go version](https://img.shields.io/github/go-mod/go-version/yusiwen/obs-adapter?style=flat-square&logo=go&logoColor=white)](go.mod)
+[![Backend: MinIO](https://img.shields.io/badge/backend-MinIO-c72c48?style=flat-square&logo=minio&logoColor=white)](https://min.io)
+[![Protocol: OBS](https://img.shields.io/badge/protocol-OBS%20API-0b6cbf?style=flat-square)](docs/protocol.md)
+[![Dependencies: stdlib only](https://img.shields.io/badge/dependencies-stdlib%20only-success?style=flat-square)](go.mod)
+[![Status: local test verification](https://img.shields.io/badge/status-local%20test%20verification-blueviolet?style=flat-square)](#)
+[![Last commit](https://img.shields.io/github/last-commit/yusiwen/obs-adapter?style=flat-square)](https://github.com/yusiwen/obs-adapter/commits/main)
+
 A Go implementation of the **OBS server-side API**: it exposes an endpoint that
 looks exactly like Huawei Cloud OBS and stores the objects in MinIO.
 
