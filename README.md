@@ -98,6 +98,40 @@ CA certificates and the static binary (`CGO_ENABLED=0`), running as UID 65532.
 `VERSION` can be injected at build time (`--build-arg VERSION=1.2.3`) and is
 reported by `/__health`.
 
+### Self-contained stack (MinIO + adapter)
+
+`docker-compose.yaml` brings up a local MinIO and the adapter wired together —
+the same shape the e2e suite validates:
+
+```bash
+configs/build-minio-image.sh          # once; see the note below
+docker compose up -d --build
+curl -s http://127.0.0.1:8080/__health
+docker compose down -v                # stop and drop the data volume
+```
+
+Override any default with the environment or a `.env` next to the compose file:
+`ADAPTER_PORT` (published adapter port), `OBS_DOMAIN`, `MINIO_ROOT_USER`/
+`MINIO_ROOT_PASSWORD` (which the adapter reuses as its upstream credentials),
+`OBS_AK`/`OBS_SK` (inbound test credentials), `MINIO_IMAGE`, `ADAPTER_VERSION`.
+
+The `OBS_AK`/`OBS_SK` defaults are the test values from `test/e2e/run.sh` and are
+deliberately public — set your own before exposing the port beyond loopback.
+
+**About the MinIO image.** `minio/minio` is no longer publicly pullable from
+Docker Hub (and `quay.io/minio/minio` answers 401), so the compose file expects
+an image named after the upstream tag that you build once from the official
+release binary:
+
+```bash
+configs/build-minio-image.sh RELEASE.2025-04-22T22-12-26Z
+# fetches linux-amd64/arm64 from dl.minio.org.cn (dl.min.io drops old archives),
+# builds it with configs/minio.Dockerfile, tags minio/minio:<release>
+```
+
+If you already have that image in a registry of your own, point `MINIO_IMAGE` at
+it and skip the script.
+
 Notes for deployment:
 
 - the container listens on **8080** as a non-root user, so publish

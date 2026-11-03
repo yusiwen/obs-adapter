@@ -1,0 +1,65 @@
+# Local stack: MinIO + obs-adapter, i.e. everything the e2e suite talks to.
+#
+#   configs/build-minio-image.sh        # once: MinIO image is not on a public registry
+#   docker compose up -d --build       # adapter image from this repo + MinIO
+#   docker compose down -v             # stop, drop the data volume
+#
+# Then run the real SDK suites against it (from any host that can reach
+# ${ADAPTER_PORT}):
+#
+#   E2E_RESOLVE_IP=<docker-host> java -cp "$OBS_SDK_JAR:test/e2e/out" \
+#       ObsE2E http://obs.test:${ADAPTER_PORT} legacy-bucket vhost
+#
+# Everything is overridable from the environment or a .env file next to this
+# file; the defaults below are the test values test/e2e/run.sh uses.
+name: obs-adapter
+
+services:
+  minio:
+    image: ${MINIO_IMAGE:-minio/minio:RELEASE.2025-04-22T22-12-26Z}
+    command: ["server", "/data", "--address", ":9000", "--console-address", ":9001"]
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      MINIO_UPDATE: "off"
+      MINIO_BROWSER: "off"
+    volumes:
+      - minio-data:/data
+    ports:
+      # loopback only: the adapter reaches MinIO over the compose network
+      - "127.0.0.1:${MINIO_API_PORT:-9000}:9000"
+      - "127.0.0.1:${MINIO_CONSOLE_PORT:-9001}:9001"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:9000/minio/health/live"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 5s
+
+  obs-adapter:
+    build:
+      context: .
+      args:
+        VERSION: ${ADAPTER_VERSION:-dev}
+    image: obs-adapter:${ADAPTER_VERSION:-dev}
+    depends_on:
+      minio:
+        condition: service_healthy
+    environment:
+      OBS_ADAPTER_LISTEN: ":8080"
+      OBS_ADAPTER_DOMAIN: ${OBS_DOMAIN:-obs.test}
+      # backend
+      OBS_ADAPTER_MINIO_ENDPOINT: http://minio:9000
+      OBS_ADAPTER_MINIO_AK: ${MINIO_ROOT_USER:-minioadmin}
+      OBS_ADAPTER_MINIO_SK: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      OBS_ADAPTER_MINIO_REGION: ${MINIO_REGION:-us-east-1}
+      # inbound OBS credentials (test values, same as test/e2e/run.sh)
+      OBS_ADAPTER_AK: ${OBS_AK:-AKTEST1234567890}
+      OBS_ADAPTER_SK: ${OBS_SK:-SKtestsecretkey0123456789}
+      OBS_ADAPTER_AUTO_CREATE_BUCKET: "true"
+      OBS_ADAPTER_LOG_LEVEL: ${LOG_LEVEL:-info}
+    ports:
+      - "${ADAPTER_PORT:-8080}:8080"
+
+volumes:
+  minio-data:
